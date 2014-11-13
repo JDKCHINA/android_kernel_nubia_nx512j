@@ -2917,6 +2917,7 @@ void wcd_imped_config(struct snd_soc_codec *codec,
 		 */
 		if (set_gain) {
 
+
 			/*
 			 * For 32Ohm load and higher loads, Set 0x19E bit 5
 			 * to 1 (POS_6_DB_DI). For loads lower than 32Ohm
