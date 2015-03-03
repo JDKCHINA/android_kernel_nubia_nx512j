@@ -368,10 +368,53 @@ static const struct snd_soc_dapm_widget msm8x16_dapm_widgets[] = {
 static char const *rx_bit_format_text[] = {"S16_LE", "S24_LE"};
 static const char *const ter_mi2s_tx_ch_text[] = {"One", "Two"};
 static const char *const loopback_mclk_text[] = {"DISABLE", "ENABLE"};
+
 #ifdef CONFIG_FEATURE_ZTEMT_AUDIO_EXT_PA
 static const char *const external_PA_text[] = {"off", "on"};
 static const char *const hphr_control_text[] = {"off", "on"};
 #endif //CONFIG_FEATURE_ZTEMT_AUDIO_EXT_PA
+
+static int msm_auxpcm_be_params_fixup(struct snd_soc_pcm_runtime *rtd,
+					struct snd_pcm_hw_params *params)
+{
+	struct snd_interval *rate =
+	    hw_param_interval(params, SNDRV_PCM_HW_PARAM_RATE);
+
+	struct snd_interval *channels =
+	    hw_param_interval(params, SNDRV_PCM_HW_PARAM_CHANNELS);
+
+	rate->min = rate->max = msm8909_auxpcm_rate;
+	channels->min = channels->max = 1;
+
+	return 0;
+}
+
+static int enable_spk_ext_pa(struct snd_soc_codec *codec, int enable)
+{
+	struct snd_soc_card *card = codec->card;
+	struct msm8916_asoc_mach_data *pdata = snd_soc_card_get_drvdata(card);
+	int ret = 0;
+
+	if (!gpio_is_valid(pdata->spk_ext_pa_gpio)) {
+		pr_err("%s: Invalid gpio: %d\n", __func__,
+			pdata->spk_ext_pa_gpio);
+		return -EINVAL;
+	}
+
+	pr_debug("%s: %s external speaker PA\n", __func__,
+		enable ? "Enable" : "Disable");
+	ret = pinctrl_select_state(pinctrl_info.pinctrl,
+				pinctrl_info.cdc_lines_act);
+	if (ret < 0) {
+		pr_err("%s: failed to active cdc gpio's\n",
+				__func__);
+		return -EINVAL;
+	}
+
+	gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, enable);
+
+	return 0;
+}
 
 static int msm_pri_rx_be_hw_params_fixup(struct snd_soc_pcm_runtime *rtd,
 				struct snd_pcm_hw_params *params)
