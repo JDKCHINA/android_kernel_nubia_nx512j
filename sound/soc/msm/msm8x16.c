@@ -57,6 +57,13 @@
 
 #define WCD_MBHC_DEF_RLOADS 5
 
+#define LPASS_CSR_GP_LPAIF_PRI_PCM_PRI_MODE_MUXSEL 0x07702008
+
+enum btsco_rates {
+	RATE_8KHZ_ID,
+	RATE_16KHZ_ID,
+};
+
 static int msm_btsco_rate = BTSCO_RATE_8KHZ;
 static int msm_btsco_ch = 1;
 
@@ -930,10 +937,10 @@ static int msm_btsco_rate_put(struct snd_kcontrol *kcontrol,
 				struct snd_ctl_elem_value *ucontrol)
 {
 	switch (ucontrol->value.integer.value[0]) {
-	case 8000:
+	case RATE_8KHZ_ID:
 		msm_btsco_rate = BTSCO_RATE_8KHZ;
 		break;
-	case 16000:
+	case RATE_16KHZ_ID:
 		msm_btsco_rate = BTSCO_RATE_16KHZ;
 		break;
 	default:
@@ -955,7 +962,8 @@ static const struct soc_enum msm_snd_enum[] = {
 #endif //CONFIG_FEATURE_ZTEMT_AUDIO_EXT_PA
 };
 
-static const char *const btsco_rate_text[] = {"8000", "16000"};
+static const char *const btsco_rate_text[] = {"BTSCO_RATE_8KHZ",
+	"BTSCO_RATE_16KHZ"};
 static const struct soc_enum msm_btsco_enum[] = {
 	SOC_ENUM_SINGLE_EXT(2, btsco_rate_text),
 };
@@ -1426,16 +1434,7 @@ static void *def_msm8x16_wcd_mbhc_cal(void)
 	 */
 	btn_low[0] = 75;
 	btn_high[0] = 75;
-#ifdef CONFIG_MACH_CRACKLING
-	btn_low[1] = 100;
-	btn_high[1] = 100;
-	btn_low[2] = 120;
-	btn_high[2] = 120;
-	btn_low[3] = 350;
-	btn_high[3] = 350;
-	btn_low[4] = 475;
-	btn_high[4] = 475;
-#else
+
 	btn_low[1] = 150;
 	btn_high[1] = 150;
 	btn_low[2] = 237;
